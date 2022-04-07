@@ -73,11 +73,25 @@ function App() {
 
     const network_id = await web3.eth.net.getId();
     await updateWeb3NetworkStates(network_id, web3);
+    console.log("here!!!");
+    // if(network_id !== 80001 && network_id !== 97){
+    //   await switchNetwork(80001, web3);
+    // } else {
+    //   console.log("networkChosen: ", networkChosen);
+    //   await switchNetwork(80001, web3);
+    // }
+    await switchNetwork(80001, web3);
+
   }
 
-  const switchNetwork = async (network) => {
+  const switchNetwork = async (network, _web3) => {
     console.log("switching to network... ", network);
-    if(accounts){
+    console.log("accounts: ", accounts);
+    // if(!_web3){
+    //   _web3 = await getWeb3();
+    //   setWeb3(_web3);
+    // }
+    if(true){
       const chainName = network===80001 ? 
         "Mumbai" : 
         "Binance Testnet";
@@ -89,19 +103,25 @@ function App() {
         "https://mumbai.polygonscan.com/" :
         "https://testnet.bscscan.com";
       try {
-        await web3.currentProvider.request({
+        console.log("trying to switchNetwork");
+        console.log("here1");
+        console.log("web3: ", _web3);
+        console.log("web3.currentProvider: ", web3.currentProvider);
+        await _web3.currentProvider.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: web3.utils.toHex(network)}],
+          params: [{ chainId: _web3.utils.toHex(network)}],
         });
+        console.log("trying to switchNetwork success");
         setNetworkChosen(network);
       } catch (error) {
+        console.log("erro swtichingNetworkr: ", error);
         if (error.code === 4902) {
           try {
-            await web3.currentProvider.request({
+            await _web3.currentProvider.request({
               method: "wallet_addEthereumChain",
               params: [
                 {
-                  chainId: web3.utils.toHex(network),
+                  chainId: _web3.utils.toHex(network),
                   chainName: chainName,
                   rpcUrls: [rpcUrls],
                   nativeCurrency: {
@@ -119,8 +139,9 @@ function App() {
           }
         }
       }
-      const network_id = await web3.eth.net.getId();
-      await updateWeb3NetworkStates(network_id, web3);
+      const network_id = await _web3.eth.net.getId();
+      console.log("network_id: ", network_id);
+      await updateWeb3NetworkStates(network_id, _web3);
     }
     else {
       setNetworkChosen(network);
@@ -128,26 +149,34 @@ function App() {
   }
 
   const updateWeb3NetworkStates = async (network_id, _web3) => {
+    console.log("in updateWeb3NetworkStates");
     if(!_web3){
       _web3 = await getWeb3();
       setWeb3(_web3);
     }
+    console.log("updateWeb3NetworkStates2");
+    console.log("network_id: " + typeof network_id + " " + network_id);
+    if(network_id === 80001 || network_id === 97){
     
-    console.log("updatingWeb3Network...");
-    console.log("web3: ", _web3);
-    setNetworkChosen(network_id);
-    const accounts = await _web3.eth.getAccounts(); 
-    const deployedNetwork = DonationContract.networks[network_id];
-    console.log("deployedNetworkAddress: ", deployedNetwork.address);
-    const contractInstance = new _web3.eth.Contract(
-      DonationContract.abi,
-      deployedNetwork && deployedNetwork.address,
-    );
-    const totalDonatedAmount = await contractInstance.methods.getDonatedAmount().call();
-    setNetworkId(network_id);
-    setAccounts(accounts);
-    setContract(contractInstance);
-    setTotalDonations((prevState) => ({...prevState, [network_id === 80001 ? "matic" : "bnb"]: totalDonatedAmount }));
+      console.log("updatingWeb3Network...");
+      console.log("web3: ", _web3);
+      console.log("networkChosen2: ", networkChosen);
+      
+      setNetworkChosen(network_id);
+      const accounts = await _web3.eth.getAccounts(); 
+      const deployedNetwork = DonationContract.networks[network_id];
+      console.log("deployedNetworkAddress: ", deployedNetwork.address);
+      const contractInstance = new _web3.eth.Contract(
+        DonationContract.abi,
+        deployedNetwork && deployedNetwork.address,
+      );
+      const totalDonatedAmount = await contractInstance.methods.getDonatedAmount().call();
+      setNetworkId(network_id);
+      setAccounts(accounts);
+      setContract(contractInstance);
+      setTotalDonations((prevState) => ({...prevState, [network_id === 80001 ? "matic" : "bnb"]: totalDonatedAmount }));
+
+    }
   }
 
   const onClickDonate = async (e) => {
@@ -159,6 +188,10 @@ function App() {
 
   const onClickOpenMetamaskDownloadPage = () => {
     window.open("https://metamask.io/download/", "_blank");
+  }
+
+  const onClickConnectPolygonTestnetGuide = () => {
+    window.open("https://blog.polysynth.com/how-to-connect-polygon-testnet-to-metamask-wallet-472bca410d64", "_blank");
   }
 
   const sendTransaction = async () => {
@@ -200,7 +233,7 @@ function App() {
   const polygonButtonColor = networkChosen ===80001 ? "bg-[#bc42f5]" : "bg-[#94928e]";
   const polygonButtonHoverColor = "hover:bg-[#bc42f5]";
   const bscButtonHoverColor = "hover:bg-[#f5c542]";
-  console.log("networkChosen$ ",  typeof networkChosen);
+  console.log("networkChosen$ ",  networkChosen);
   const bscButtonColor = networkChosen === 97 ? "bg-[#f5c542]" : "bg-[#94928e]";
   console.log("bscButtonColor: ", bscButtonColor);
   const bscButtonTextColor = networkChosen === 97 ? "text-[#000000]" : "text-white";
@@ -255,17 +288,17 @@ function App() {
           <p 
             className='text-xl font-bold pb-5 mt-5'
           >
-            Choose network:
+            {"Choose network:"}
           </p>
           <button
             className={`flex flex-row h-1/2 justify-center w-1/2 items-center my-5 ${polygonButtonColor} p-3 ml-4 rounded-full ${!contract?null:polygonButtonHoverColor}`}
-            onClick={() => {switchNetwork(80001)}}
+            onClick={() => {switchNetwork(80001, web3)}}
           >
             Polygon
           </button>
           <button
             className={`flex flex-row h-1/2 justify-center w-1/2 items-center my-5 ${bscButtonTextColor} ${bscButtonColor} p-3 ml-4 rounded-full ${!contract?null:bscButtonHoverColor}`}
-            onClick={() => {switchNetwork(97)}}
+            onClick={() => {switchNetwork(97, web3)}}
           >
             BSC
           </button>
