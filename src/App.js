@@ -68,30 +68,18 @@ function App() {
 
   const connectWeb3Account = async () => {
     console.log("connecting wallet...");
-    const web3 = await getWeb3();
-    setWeb3(web3);
+    let _web3 = await getWeb3();
+    setWeb3(_web3);
 
-    const network_id = await web3.eth.net.getId();
-    await updateWeb3NetworkStates(network_id, web3);
-    console.log("here!!!");
-    // if(network_id !== 80001 && network_id !== 97){
-    //   await switchNetwork(80001, web3);
-    // } else {
-    //   console.log("networkChosen: ", networkChosen);
-    //   await switchNetwork(80001, web3);
-    // }
-    await switchNetwork(80001, web3);
+    const network_id = await _web3.eth.net.getId();
+    await updateWeb3NetworkStates(network_id, _web3);
 
+    if(network_id !== networkChosen){
+      await switchNetwork(networkChosen, _web3);
+    } 
   }
 
   const switchNetwork = async (network, _web3) => {
-    console.log("switching to network... ", network);
-    console.log("accounts: ", accounts);
-    // if(!_web3){
-    //   _web3 = await getWeb3();
-    //   setWeb3(_web3);
-    // }
-    if(true){
       const chainName = network===80001 ? 
         "Mumbai" : 
         "Binance Testnet";
@@ -103,15 +91,10 @@ function App() {
         "https://mumbai.polygonscan.com/" :
         "https://testnet.bscscan.com";
       try {
-        console.log("trying to switchNetwork");
-        console.log("here1");
-        console.log("web3: ", _web3);
-        console.log("web3.currentProvider: ", web3.currentProvider);
         await _web3.currentProvider.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: _web3.utils.toHex(network)}],
         });
-        console.log("trying to switchNetwork success");
         setNetworkChosen(network);
       } catch (error) {
         console.log("erro swtichingNetworkr: ", error);
@@ -140,12 +123,7 @@ function App() {
         }
       }
       const network_id = await _web3.eth.net.getId();
-      console.log("network_id: ", network_id);
       await updateWeb3NetworkStates(network_id, _web3);
-    }
-    else {
-      setNetworkChosen(network);
-    }
   }
 
   const updateWeb3NetworkStates = async (network_id, _web3) => {
@@ -238,7 +216,9 @@ function App() {
   console.log("bscButtonColor: ", bscButtonColor);
   const bscButtonTextColor = networkChosen === 97 ? "text-[#000000]" : "text-white";
   const connectWalletButtonColor = window.ethereum ? accounts ? "bg-[transparent]": "bg-[#4287f5]": grayColor;
-  const connectWalletButtonTextColor = accounts ? "text-[#3fd615]": "text-white";
+  const connectWalletButtonOnHoverColor = accounts ? "bg-[transparent]" : "bg-[#2546bd]";
+  const connectWalletButtonTextColor = accounts ? "text-[#62ff00]": "text-white";
+  // const connectWalletButtonTextColor = accounts ? "text-[#3fd615]": "text-white";
   const connectWalletTextSize = accounts ? "text-2xl" : null;
   
   return (
@@ -292,13 +272,18 @@ function App() {
           </p>
           <button
             className={`flex flex-row h-1/2 justify-center w-1/2 items-center my-5 ${polygonButtonColor} p-3 ml-4 rounded-full ${!contract?null:polygonButtonHoverColor}`}
-            onClick={() => {switchNetwork(80001, web3)}}
+            onClick={() => {
+              accounts ? switchNetwork(80001, web3) : setNetworkChosen(80001);
+            }}
           >
             Polygon
           </button>
           <button
             className={`flex flex-row h-1/2 justify-center w-1/2 items-center my-5 ${bscButtonTextColor} ${bscButtonColor} p-3 ml-4 rounded-full ${!contract?null:bscButtonHoverColor}`}
-            onClick={() => {switchNetwork(97, web3)}}
+            onClick={() => {
+              
+              accounts ? switchNetwork(97, web3) : setNetworkChosen(97);
+            }}
           >
             BSC
           </button>
@@ -308,11 +293,11 @@ function App() {
         {/* Connect Wallet Button */}
         {
           <button 
-            className={`flex flex-row justify-center w-3/4 items-center my-5 mb-10 ${connectWalletTextSize} ${connectWalletButtonColor} ${connectWalletButtonTextColor} p-3 rounded-full ${!contract?null:"hover:bg-[#2546bd]"}`}
+            className={`flex flex-row justify-center w-3/4 items-center my-5 mb-10 ${connectWalletTextSize} ${connectWalletButtonColor} ${connectWalletButtonTextColor} p-3 rounded-full ${!contract?null:`hover:${connectWalletButtonOnHoverColor}`}`}
             onClick={connectWeb3Account}
             disabled={!window.ethereum || accounts}
           >
-            {accounts ? "Wallet Connected" : "Connect Wallet"}
+            {accounts ? "Wallet Connected" : "Connect Metamask Wallet"}
           </button>
         }
 
