@@ -168,9 +168,18 @@ function App() {
     window.open("https://metamask.io/download/", "_blank");
   }
 
-  const onClickConnectPolygonTestnetGuide = () => {
-    window.open("https://blog.polysynth.com/how-to-connect-polygon-testnet-to-metamask-wallet-472bca410d64", "_blank");
+  // const onClickConnectPolygonTestnetGuide = () => {
+  //   window.open("https://blog.polysynth.com/how-to-connect-polygon-testnet-to-metamask-wallet-472bca410d64", "_blank");
+  // }
+
+  const onClickGoToPolygonFaucet = () => {
+    window.open("https://faucet.polygon.technology/", "_blank");
   }
+
+  const onClickGoToBSCFaucet = () => {
+    window.open("https://testnet.binance.org/faucet-smart", "_blank");
+  }
+  
 
   const sendTransaction = async () => {
     try {
@@ -220,6 +229,7 @@ function App() {
   const connectWalletButtonTextColor = accounts ? "text-[#62ff00]": "text-white";
   // const connectWalletButtonTextColor = accounts ? "text-[#3fd615]": "text-white";
   const connectWalletTextSize = accounts ? "text-2xl" : null;
+  const faucetLinkColor = networkChosen === 80001 ? "text-[#e79bf2]" : "text-[#d9e62e]";
   
   return (
     // <div  style={{backgroundImage:  "url(./images/northern_lights.png})"}}>
@@ -290,15 +300,27 @@ function App() {
         </div>
 
         
+
+        
         {/* Connect Wallet Button */}
         {
           <button 
-            className={`flex flex-row justify-center w-3/4 items-center my-5 mb-10 ${connectWalletTextSize} ${connectWalletButtonColor} ${connectWalletButtonTextColor} p-3 rounded-full ${!contract?null:`hover:${connectWalletButtonOnHoverColor}`}`}
+            className={`flex flex-row justify-center w-3/4 items-center my-5 mb-5 ${connectWalletTextSize} ${connectWalletButtonColor} ${connectWalletButtonTextColor} p-3 rounded-full ${!contract?null:`hover:${connectWalletButtonOnHoverColor}`}`}
             onClick={connectWeb3Account}
             disabled={!window.ethereum || accounts}
           >
             {accounts ? "Wallet Connected" : "Connect Metamask Wallet"}
           </button>
+        }
+
+        {/* Faucet text link */}
+        {accounts && (networkChosen === 80001 ||  networkChosen === 97) &&
+          <p
+            className={`text-xl font-bold pb-5 mb-10 ${faucetLinkColor} hover:cursor-pointer hover:text-[white] `}
+            onClick={networkChosen === 80001 ? onClickGoToPolygonFaucet : onClickGoToBSCFaucet}
+          >
+            {`Get free testnet ${networkChosen === 80001 ? "MATIC" : "BNB"} tokens from ${networkChosen === 80001 ? "Polygon" : "BSC"}  Faucet here`}
+          </p>
         }
 
         
@@ -314,19 +336,6 @@ function App() {
           Donate
         </button>
         
-        {/* <p 
-          className='text-2xl font-bold '
-        >
-          {`${totalDonations/(10 **18)} MATIC`}
-        </p> */}
-        {/* <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a> */}
       </div>
 
       { networkId &&
